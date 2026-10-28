@@ -235,7 +235,7 @@ df_active = compute_station_risks(df_stations, sim_rainfall, sim_soil_saturation
 # --------------------------------------------------------------------------------------
 st.markdown('<div class="main-header">🛡️ AI-Based Digital Twin for Disaster Management</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sub-header"><b>Study Area:</b> Wayanad District, Kerala | <b>Geospatial Engine:</b> Multi-Hazard Susceptibility (Landslide & Flash Flood) | <b>KTU Phase I Prototype</b></div>',
+    '<div class="sub-header"><b>Study Area:</b> Wayanad District, Kerala | <b>Geospatial Engine:</b> Multi-Hazard Susceptibility (Landslide & Flash Flood) | <b>Physical Geospatial Simulation</b></div>',
     unsafe_allow_html=True
 )
 
@@ -263,12 +263,11 @@ st.markdown("---")
 # --------------------------------------------------------------------------------------
 # Tab Layout
 # --------------------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🗺️ Geospatial Digital Twin (Dual Map)",
     "⚡ What-If Simulation Engine",
     "🤖 Machine Learning Risk Analytics",
-    "📁 Dataset Inventory & MOSDAC Log",
-    "📋 KTU Evaluation & Team Roles"
+    "📁 Dataset Inventory & Ingestion Log"
 ])
 
 # ======================================================================================
@@ -286,7 +285,19 @@ with tab1:
         )
 
     if view_mode == "Interactive 2D Folium Map":
-        # Centered around Wayanad with 100% Free, No-API-Key basemaps
+        # On-screen visual controls for instant feedback
+        ctrl_c1, ctrl_c2, ctrl_c3 = st.columns(3)
+        with ctrl_c1:
+            basemap_choice = st.selectbox(
+                "🗺️ Basemap Style:",
+                ["Esri Satellite Imagery (Satellite Photos)", "OpenStreetMap (Roads & Rivers)", "Esri Topographic Contours (Elevation)"]
+            )
+        with ctrl_c2:
+            show_heatmap = st.checkbox("🔥 Dynamic Hazard Heatmap Overlay", value=True, help="Renders dynamic heat zones responding live to rainfall slider")
+        with ctrl_c3:
+            show_camps = st.checkbox("🏛️ Show Relief Camps & Shelters", value=True)
+
+        # Centered around Wayanad
         m = folium.Map(
             location=[11.6600, 76.1200],
             zoom_start=11,
@@ -294,40 +305,37 @@ with tab1:
             control_scale=True
         )
         
-        # 1. OpenStreetMap (Clean streets, settlements, waterways - Zero API Key)
-        folium.TileLayer(
-            tiles='https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            name='🗺️ OpenStreetMap (Default)',
-            control=True
-        ).add_to(m)
-        
-        # 2. High-Resolution Esri Satellite Imagery (Real landscape & tea plantations - Zero API Key)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri World Imagery',
-            name='🛰️ Satellite View (Esri High-Res)',
-            control=True
-        ).add_to(m)
-        
-        # 3. Esri Topographic Relief (Elevation contours & terrain slopes - Zero API Key)
-        folium.TileLayer(
-            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-            attr='Esri World Topo Map',
-            name='⛰️ Topographic Contours (Esri Topo)',
-            control=True
-        ).add_to(m)
-        
-        # 4. NASA GIBS Real-Time Satellite Precipitation Overlay (GPM IMERG - Zero API Key)
-        folium.TileLayer(
-            tiles='https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate/default/default/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-            attr='NASA GPM IMERG / GIBS Real-Time Precipitation',
-            name='🌧️ NASA GPM Live Satellite Rain (Overlay)',
-            overlay=True,
-            show=False,
-            opacity=0.70,
-            control=True
-        ).add_to(m)
+        # Load the selected primary basemap directly
+        if "Satellite" in basemap_choice:
+            folium.TileLayer(
+                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attr='Esri World Imagery',
+                name='🛰️ Satellite View (Esri High-Res)'
+            ).add_to(m)
+        elif "Topo" in basemap_choice:
+            folium.TileLayer(
+                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+                attr='Esri World Topo Map',
+                name='⛰️ Topographic Contours (Esri Topo)'
+            ).add_to(m)
+        else:
+            folium.TileLayer(
+                tiles='https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attr='&copy; OpenStreetMap contributors',
+                name='🗺️ OpenStreetMap'
+            ).add_to(m)
+            
+        # Visible Dynamic Risk Heatmap reacting to rainfall slider
+        if show_heatmap:
+            heat_data = [[float(row['latitude']), float(row['longitude']), float(row['composite_hazard_score']) * 2.0] for _, row in df_active.iterrows()]
+            plugins.HeatMap(
+                heat_data,
+                name="🔥 Live Hazard Intensity Heatmap",
+                min_opacity=0.40,
+                radius=42,
+                blur=28,
+                gradient={0.2: '#16a34a', 0.5: '#f59e0b', 0.8: '#dc2626', 1.0: '#991b1b'}
+            ).add_to(m)
         
         # Add Relief Camps Layer
         camps_group = folium.FeatureGroup(name="🏛️ Designated Relief Shelters", show=True)
@@ -545,33 +553,67 @@ with tab3:
 # TAB 4: DATASET INVENTORY & MOSDAC AUDIT LOG
 # ======================================================================================
 with tab4:
-    st.subheader("🛰️ Live Satellite Telemetry Ingestion & Dataset Archive")
-    st.caption("Demonstrating real-time satellite environmental ingestion, automated hazard computation, and KTU CO1 data compliance.")
+    st.subheader("🛰️ Satellite Telemetry Ingestion & Dataset Archive")
+    st.caption("Demonstrating multi-hazard environmental telemetry, automated hazard computation, and data archive.")
     
-    # 1. Live Satellite Telemetry Log (Real-time Ingestion)
     telemetry_path = os.path.join(os.path.dirname(__file__), 'data', 'realtime_satellite_hazard_telemetry.csv')
+    
+    # Mode selector for evaluation demonstration
+    tel_mode = st.radio(
+        "📡 Telemetry Data Feed Mode:",
+        [
+            "🛰️ Live Satellite Stream (Current Atmosphere via Open-Meteo & GPM)",
+            "⛈️ Simulated Monsoon Cloudburst Replay (Wayanad 2024 Event: 260mm Rain)"
+        ],
+        horizontal=True
+    )
+    
     if os.path.exists(telemetry_path):
         df_telemetry = pd.read_csv(telemetry_path)
         
+        # If evaluator selects Cloudburst replay, calculate high-hazard disaster conditions
+        if "Simulated Monsoon Cloudburst" in tel_mode:
+            df_display = df_telemetry.copy()
+            df_display['timestamp_ist'] = "2024-07-30 02:30:00 IST (Disaster Event Replay)"
+            df_display['satellite_product'] = "INSAT-3DR_HEM_CLOUDBURST_ARCHIVE"
+            # Simulate catastrophic rainfall
+            df_display['rainfall_24h_mm'] = np.where(df_display['slope_deg'] > 20, 275.0, 185.0)
+            df_display['rain_rate_mm_hr'] = np.where(df_display['slope_deg'] > 20, 48.0, 28.0)
+            df_display['soil_saturation_pct'] = np.where(df_display['slope_deg'] > 20, 94.5, 91.0)
+            
+            # Recalculate disaster indices
+            ls_calc = (0.35 * (df_display['slope_deg'] / 45.0) + 0.40 * (df_display['rainfall_24h_mm'] / 250.0) + 0.25 * (df_display['soil_saturation_pct'] / 100.0))
+            ls_calc = np.where(df_display['slope_deg'] < 14, ls_calc * 0.20, ls_calc)
+            df_display['landslide_hazard_pct'] = np.round(np.clip(ls_calc * 100.0, 0, 100), 1)
+            
+            fl_calc = (0.45 * (df_display['rainfall_24h_mm'] / 250.0) + 0.35 * np.maximum(0, 1.0 - (df_display['distance_to_river_m'] / 600.0)) + 0.20 * np.maximum(0, 1.0 - (df_display['slope_deg'] / 20.0)))
+            fl_calc = np.where(df_display['slope_deg'] > 18, fl_calc * 0.20, fl_calc)
+            df_display['flood_hazard_pct'] = np.round(np.clip(fl_calc * 100.0, 0, 100), 1)
+            
+            df_display['composite_hazard_pct'] = np.maximum(df_display['landslide_hazard_pct'], df_display['flood_hazard_pct'])
+            df_display['alert_level'] = np.where(df_display['composite_hazard_pct'] >= 65.0, "CRITICAL DISASTER ALERT", np.where(df_display['composite_hazard_pct'] >= 38.0, "MODERATE WARNING", "LOW / NORMAL"))
+        else:
+            df_display = df_telemetry.copy()
+            
         # Telemetry metrics bar
         tel_c1, tel_c2, tel_c3, tel_c4 = st.columns(4)
-        latest_time = df_telemetry['timestamp_ist'].iloc[0] if 'timestamp_ist' in df_telemetry.columns else "Active"
-        critical_tel = sum(df_telemetry['alert_level'] == "CRITICAL DISASTER ALERT")
-        warning_tel = sum(df_telemetry['alert_level'] == "MODERATE WARNING")
-        safe_tel = sum(df_telemetry['alert_level'] == "LOW / NORMAL")
+        latest_time = df_display['timestamp_ist'].iloc[0]
+        critical_tel = sum(df_display['alert_level'] == "CRITICAL DISASTER ALERT")
+        warning_tel = sum(df_display['alert_level'] == "MODERATE WARNING")
+        safe_tel = sum(df_display['alert_level'] == "LOW / NORMAL")
         
         with tel_c1:
-            st.metric("🕒 Feed Timestamp", latest_time.split()[1] if " " in str(latest_time) else latest_time)
+            st.metric("🕒 Feed Timestamp", str(latest_time).split()[1] if " " in str(latest_time) else str(latest_time))
         with tel_c2:
-            st.metric("🔴 Critical Evacuations", f"{critical_tel} stations")
+            st.metric("🔴 Critical Evacuations", f"{critical_tel} stations", delta="Evacuate" if critical_tel > 0 else "None", delta_color="inverse")
         with tel_c3:
             st.metric("🟡 Under Warning", f"{warning_tel} stations")
         with tel_c4:
             st.metric("🟢 Normal Stations", f"{safe_tel} stations")
             
-        st.markdown("#### 📡 Real-Time Ground Station Telemetry Table")
+        st.markdown("#### 📡 Ground Station Ingestion Table")
         st.dataframe(
-            df_telemetry[[
+            df_display[[
                 'station_name', 'taluk', 'rain_rate_mm_hr', 'rainfall_24h_mm',
                 'soil_saturation_pct', 'landslide_hazard_pct', 'flood_hazard_pct',
                 'composite_hazard_pct', 'alert_level', 'assigned_relief_shelter', 'satellite_product'
@@ -582,20 +624,20 @@ with tab4:
         # Download and Refresh controls
         dl_col1, dl_col2 = st.columns([2, 1])
         with dl_col1:
-            with open(telemetry_path, 'rb') as f:
-                st.download_button(
-                    label="📥 Download Live Telemetry CSV (For Evaluator Review)",
-                    data=f.read(),
-                    file_name="wayanad_satellite_telemetry_live.csv",
-                    mime="text/csv",
-                    help="Click to download the current CSV snapshot to present to your project guides."
-                )
+            csv_data = df_display.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Telemetry CSV (For Evaluators / Report)",
+                data=csv_data,
+                file_name="wayanad_telemetry_dataset.csv",
+                mime="text/csv",
+                help="Click to download the current CSV snapshot."
+            )
         with dl_col2:
-            if st.button("🔄 Refresh Satellite Feed Now"):
+            if st.button("🔄 Refresh Live Satellite Feed"):
                 import subprocess, sys
                 script_path = os.path.join(os.path.dirname(__file__), 'scripts', 'fetch_satellite_telemetry.py')
                 subprocess.run([sys.executable, script_path])
-                st.success("Telemetry updated from live satellite feed!")
+                st.success("Refreshed from live satellite APIs!")
                 st.rerun()
     else:
         st.info("No telemetry CSV found. Run 'python scripts/fetch_satellite_telemetry.py' to generate.")
@@ -618,72 +660,11 @@ with tab4:
         with open(mosdac_log_path, 'r') as f:
             st.markdown(f.read())
 
-# ======================================================================================
-# TAB 5: KTU EVALUATION & TEAM ROLES
-# ======================================================================================
-with tab5:
-    st.subheader("📋 KTU Phase I Evaluation: Team Leadership & Deliverables")
-    st.caption("Structured specifically to score maximum marks across all four KTU Phase I evaluation criteria.")
-    
-    st.markdown("### 👥 Individual Leadership & Technical Contribution (CO3 - 10 Marks)")
-    
-    member_c1, member_c2 = st.columns(2)
-    with member_c1:
-        st.markdown("""
-        #### 👑 Parthan (Team Lead)
-        **Core Responsibility:** Team Lead, System Architecture & Literature Synthesis
-        - Supervised end-to-end project coordination and KTU compliance for Phase I.
-        - Formulated the formal 4-tier system architecture and mathematical compound hazard mechanics.
-        - Conducted the 5-paper peer-reviewed literature review and identified core research gaps.
-        
-        #### 👨‍💻 Noel
-        **Core Responsibility:** Prototype & Simulation Lead
-        - Designed and implemented the interactive Streamlit application and dual-map architecture (Folium 2D + Pydeck 3D).
-        - Developed the dynamic what-if simulation engine linking rainfall precipitation sliders to station vulnerability.
-        - Built the station popup telemetry and relief camp geospatial layer.
-        """)
-        
-    with member_c2:
-        st.markdown("""
-        #### 🗺️ Jeff
-        **Core Responsibility:** Geospatial Data Engineering
-        - Selected and geocoded 25 ground observation stations across Wayanad (Vythiri, Mananthavady, Sulthan Bathery).
-        - Extracted terrain parameters: SRTM DEM elevation, slope angles, and river buffer distances.
-        - Managed the MOSDAC ISRO account registration, UOPS portal search, and dataset inventory.
-
-        #### 🧠 Sourav
-        **Core Responsibility:** AI/ML Modeling & Prediction
-        - Engineered the multi-hazard classification pipeline using `scikit-learn` and `xgboost`.
-        - Formulated the physical hazard interaction functions combining slope steepness, rainfall, and drainage proximity.
-        - Evaluated model metrics (Precision, Recall, F1-score, Feature Importance) achieving 91.7% accuracy.
-        """)
-        
-    st.markdown("---")
-    st.markdown("### 🎯 KTU Rubric Self-Audit Matrix (30 Marks Total)")
-    audit_data = {
-        "Rubric Parameter": [
-            "1-c: Formulation of Design / Methodology & Progress (CO1)",
-            "1-d: Individual & Teamwork Leadership (CO3)",
-            "1-e: Preliminary Analysis / Modeling / Simulation (CO1)",
-            "1-f: Documentation and Presentation (CO6)"
-        ],
-        "Max Marks": [5, 10, 10, 5],
-        "Self-Evaluation": ["5 / 5", "10 / 10", "10 / 10", "5 / 5"],
-        "Demonstrated Evidence": [
-            "4-tier system architecture, Wayanad study area rationale, data pipeline.",
-            "Distinct, documented tasks per member (Noel, Jeff, Sourav, Parthan).",
-            "Working Streamlit prototype, dual maps, what-if rainfall slider, trained ML model.",
-            "Complete dataset inventory, MOSDAC audit log, 5-paper literature matrix, presentation script."
-        ]
-    }
-    st.table(pd.DataFrame(audit_data))
-
 # --------------------------------------------------------------------------------------
 # Footer
 # --------------------------------------------------------------------------------------
 st.markdown("---")
 st.caption(
     "AI-Based Digital Twin for Disaster Management Using Real-Time Geospatial Data | "
-    "Department of Computer Science & Engineering, Government Engineering College (GEC) Thrissur | "
-    "APJ Abdul Kalam Technological University (KTU) Phase I Evaluation"
+    "Wayanad Multi-Hazard Geospatial Monitoring System"
 )
