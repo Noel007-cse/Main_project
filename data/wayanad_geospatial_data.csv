@@ -1,0 +1,26 @@
+station_id,station_name,taluk,latitude,longitude,elevation_m,slope_deg,distance_to_river_m,soil_saturation_pct,land_use,primary_hazard_type,historical_incidents
+WYN_001,Chooralmala,Vythiri,11.5369,76.1558,860,28.5,120,82,Tea Plantation / Hill Slope,Landslide & Debris Flow,5
+WYN_002,Mundakkai,Vythiri,11.5420,76.1680,980,34.2,80,89,Forest / Steep Slope,Extreme Landslide,6
+WYN_003,Meppadi,Vythiri,11.5518,76.1264,780,22.0,350,75,Semi-Urban / Hillside,Landslide & Runoff,4
+WYN_004,Attamala,Vythiri,11.5200,76.1500,920,31.0,210,85,Tea Estate / Escarpment,Landslide,4
+WYN_005,Chembra Foothills,Vythiri,11.5160,76.0890,1150,36.5,400,78,Protected Forest / Ridge,Debris Slide,3
+WYN_006,Vythiri Town,Vythiri,11.5512,76.0402,720,26.0,250,84,Urban / Ghats Corridor,Landslide & Waterlogging,5
+WYN_007,Lakkidi Gateway,Vythiri,11.5152,76.0350,700,29.4,190,92,Ghat Road Corridor,Landslide & Torrential Runoff,6
+WYN_008,Pozhuthana,Vythiri,11.5830,76.0120,730,18.2,180,77,Agriculture / River Basin,Flash Flood & Slope Fail,3
+WYN_009,Kalpetta Town,Vythiri,11.6094,76.0834,780,14.0,620,62,District Capital / Urban,Urban Flash Flood,2
+WYN_010,Panamaram Riverbank,Mananthavady,11.7450,76.0740,745,3.8,90,91,River Floodplain / Farmland,Severe Riverine Flood,7
+WYN_011,Kaniyambetta,Mananthavady,11.6840,76.0810,755,6.5,480,68,Agricultural Lowland,Flood Inundation,3
+WYN_012,Padavayal Lowland,Mananthavady,11.7580,76.0520,738,3.2,110,94,Wetland / River Basin,Flash Flood Submergence,6
+WYN_013,Mananthavady Town,Mananthavady,11.8026,76.0034,750,5.8,140,86,River Confluence / Urban,Riverine Inundation,5
+WYN_014,Vellamunda,Mananthavady,11.7610,75.9400,760,12.4,310,69,Valley Plain / Farmland,Moderate Flood,2
+WYN_015,Thondernad,Mananthavady,11.8250,75.8920,790,24.1,260,76,Hill Slopes / Forest Edge,Landslide,3
+WYN_016,Thirunelli Forest,Mananthavady,11.9020,75.9980,820,21.5,180,74,Valley & Forest Stream,Flash Flood & Landslip,2
+WYN_017,Sulthan Bathery,Sulthan Bathery,11.6626,76.2570,930,7.8,850,52,Plateau Urban Center,Low Hazard,1
+WYN_018,Nenmeni,Sulthan Bathery,11.6420,76.2210,910,6.2,600,55,Paddy Fields / Plantation,Low Hazard,1
+WYN_019,Ambalavayal,Sulthan Bathery,11.6180,76.2110,970,11.0,720,58,Plateau / Rocks,Moderate Runoff,1
+WYN_020,Meenangadi,Sulthan Bathery,11.6600,76.1680,860,8.9,530,60,Rolling Terrain / Town,Low Hazard,1
+WYN_021,Muttil,Vythiri,11.6240,76.1240,790,13.2,450,64,Foothills / Settlements,Moderate Runoff,2
+WYN_022,Pulpally,Sulthan Bathery,11.7910,76.2620,840,4.9,390,57,Lowland Agriculture,Low / Waterlogging,1
+WYN_023,Poothadi,Sulthan Bathery,11.7100,76.1700,820,7.1,440,61,Valley Farmland,Moderate Flood,2
+WYN_024,Thariode,Vythiri,11.6380,75.9860,770,22.4,220,80,Reservoir Catchment,Landslide & Inundation,4
+WYN_025,Banasura Foothills,Vythiri,11.6670,75.9560,810,27.0,150,83,Dam Basin Slopes,Landslide Risk,4
