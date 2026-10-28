@@ -91,6 +91,12 @@ def train_and_evaluate():
     
     df = generate_calibrated_wayanad_dataset(n_samples=1500)
     
+    # Export physical training dataset to CSV for evaluator inspection
+    os.makedirs('data', exist_ok=True)
+    dataset_csv_path = os.path.join('data', 'ml_training_dataset.csv')
+    df.to_csv(dataset_csv_path, index=False)
+    print(f"[+] 1,500-sample ML training dataset saved to: {dataset_csv_path}")
+    
     X = df[['rainfall_24h_mm', 'slope_deg', 'elevation_m', 'distance_to_river_m', 'soil_saturation_pct']]
     y = df['hazard_level']
     
